@@ -17,7 +17,9 @@ func XCTestHandler() func(w http.ResponseWriter, r *http.Request) {
 			serverError(err.Error(), http.StatusInternalServerError, w)
 			return
 		}
+		log.Info("server runs test")
 		err = testmanagerd.RunXCUITest(bundleID, device)
+		log.Info("server done running test")
 		if err != nil {
 			serverError(err.Error(), http.StatusInternalServerError, w)
 			return
