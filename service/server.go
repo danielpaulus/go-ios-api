@@ -2,6 +2,8 @@ package service
 
 import (
 	"net/http"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -18,6 +20,30 @@ func limitNumClients(f http.HandlerFunc, maxClients int) http.HandlerFunc {
 		sema <- struct{}{}
 		defer func() { <-sema }()
 		f(w, req)
+	}
+}
+
+func limitNumClientsUDID(f http.HandlerFunc) http.HandlerFunc {
+	maxClients := 1
+	semaMap := map[string]chan struct{}{}
+	mux := sync.Mutex{}
+	return func(w http.ResponseWriter, r *http.Request) {
+		udid := strings.TrimSpace(r.URL.Query().Get("udid"))
+		if udid == "" {
+			serverError("missing udid", http.StatusBadRequest, w)
+			return
+		}
+		mux.Lock()
+		var sema chan struct{}
+		sema, ok := semaMap[udid]
+		if !ok {
+			sema = make(chan struct{}, maxClients)
+			semaMap[udid] = sema
+		}
+		mux.Unlock()
+		sema <- struct{}{}
+		defer func() { <-sema }()
+		f(w, r)
 	}
 }
 

@@ -33,7 +33,7 @@ func XCTestHandler() func(w http.ResponseWriter, r *http.Request) {
 				jsonResponse(map[string]interface{}{"logs": outputString, "err": err.Error()}, http.StatusInternalServerError, w)
 				return
 			}
-			log.WithFields(log.Fields{"cmd": cmd, "output": outputString}).Debugf("go-ios runtest finished")
+			log.WithFields(log.Fields{"cmd": cmd, "output": outputString}).Infof("go-ios runtest finished")
 			jsonResponse(map[string]interface{}{"logs": outputString}, http.StatusOK, w)
 			return
 		}
